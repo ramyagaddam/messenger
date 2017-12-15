@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <jdbc:embedded-database id="datasource" type="H2">
+        <jdbc:script location="classpath:setup-tables.sql"/>        
+    </jdbc:embedded-database>
+
+    <!-- See also:
+        http://static.springsource.org/spring-integration/reference/htmlsingle/#gateway-proxy
+        http://www.eaipatterns.com/MessagingGateway.html -->
+        
+    <int:channel id="dataChangeChannel">
+    </int:channel>
+    
+        
+    <int-jdbc:inbound-channel-adapter channel="dataChangeChannel"
+        query="select * from DataStoreMessage where status ='UNPROCESSED'" data-source="datasource"
+        update="update DataStoreMessage set status = 'PROCESSING' where id in (:id)" >
+         <int:poller default="true" fixed-rate="100" />
+        </int-jdbc:inbound-channel-adapter>
+        
+    <int:service-activator ref="enrincher"  method="print" input-channel ="dataChangeChannel" />
+        
+ 	<bean id="enrincher" class="org.springframework.integration.samples.jdbc.service.Enricher1"/>
+
+</beans>

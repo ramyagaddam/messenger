@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: JDBC Basic Sample
+Implementation-Version: 4.3.0.BUILD-SNAPSHOT
+Built-By: ramya.gaddam
+Implementation-Vendor-Id: org.springframework.integration.samples
+Build-Jdk: 1.8.0_151
+Implementation-URL: http://projects.spring.io/spring-integration
+Created-By: Maven Integration for Eclipse
+Implementation-Vendor: SpringIO
+
