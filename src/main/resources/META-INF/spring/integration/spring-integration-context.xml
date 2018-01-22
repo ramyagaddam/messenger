@@ -18,17 +18,35 @@
         http://www.eaipatterns.com/MessagingGateway.html -->
         
     <int:channel id="dataChangeChannel">
+    
+    
+    <int:interceptors>
+	        <int:wire-tap channel="logger"/>
+	    </int:interceptors>
     </int:channel>
     
         
-    <int-jdbc:inbound-channel-adapter channel="dataChangeChannel"
+    <int-jdbc:inbound-channel-adapter channel="dataChangeChannel" 
         query="select * from DataStoreMessage where status ='UNPROCESSED'" data-source="datasource"
         update="update DataStoreMessage set status = 'PROCESSING' where id in (:id)" >
-         <int:poller default="true" fixed-rate="100" />
+        <int:poller  id="customPoller" default="true" max-messages-per-poll="1" fixed-rate="20">
+			<int:advice-chain>
+				<ref bean="polladvise" />
+			</int:advice-chain>
+		</int:poller>
         </int-jdbc:inbound-channel-adapter>
         
     <int:service-activator ref="enrincher"  method="print" input-channel ="dataChangeChannel" />
         
  	<bean id="enrincher" class="org.springframework.integration.samples.jdbc.service.Enricher1"/>
+ 	
+	 <bean id="polladvise" class="org.springframework.integration.scheduling.PollSkipAdvice">
+		<constructor-arg ref="pollSkipStrategy" />
+	</bean>
+    <bean id="pollSkipStrategy"
+        class="org.springframework.integration.samples.jdbc.service.DefaultPollSkipStrategy">
+    </bean>
+ 	
+ 	<int:logging-channel-adapter id="logger" log-full-message="true" />
 
 </beans>
